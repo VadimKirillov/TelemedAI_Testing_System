@@ -1,10 +1,21 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from models import *
 from database import create_tables_if_not_exist
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired
 import json
 import os
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '12345'
+
+# Форма для логина
+class LoginForm(FlaskForm):
+    username = StringField('Логин', validators=[DataRequired()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
+    submit = SubmitField('Войти')
+
 
 # Загрузка конфигурации из файла
 with open('config/config.json', 'r') as f:
@@ -29,6 +40,18 @@ if not os.path.exists("config/initialized"):
 @app.route("/")
 def base():
     return render_template("base.html")
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        # Здесь вы можете добавить логику для проверки введенных данных
+        # и аутентификации пользователя
+        return redirect(url_for('base'))
+    return render_template('login.html', form=form)
 
 
 # Страница с тестами
@@ -73,6 +96,7 @@ def display_question(question_id):
     answers = Answer.query.filter_by(id_question=question_id).all()
     return render_template("question_detail.html", question=question, answers=answers)
 
+
 @app.route("/delete_question/<int:question_id>", methods=["POST"])
 def delete_question(question_id):
     question = Question.query.get(question_id)
@@ -87,6 +111,7 @@ def delete_question(question_id):
         db.session.commit()
 
     return redirect(url_for("display_questions"))
+
 
 @app.route("/create_question", methods=["GET", "POST"])
 def create_question():
@@ -140,12 +165,6 @@ def create_question():
         modals = Modal.query.all()
         targets = Target.query.all()
         return render_template("create_question.html", difficulties=difficulties, modals=modals, targets=targets)
-
-
-# Страница с созданием вопросов
-@app.route("/create_tests")
-def create_tests():
-    return render_template("create_tests.html")
 
 
 # Страница со статистикой
