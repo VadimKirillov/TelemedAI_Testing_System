@@ -37,36 +37,61 @@ def tests():
     return render_template("tests.html")
 
 
-# Страница с вопросами
 @app.route("/question")
-def question():
-    return render_template("question.html")
+def display_questions():
+    # Загрузите данные из базы данных, например, список всех вопросов
+    questions = Question.query.all()
+    return render_template("question.html", questions=questions)
 
 
-# Маршрут для страницы создания вопросов и сохранения данных
+@app.route("/question/<int:question_id>")
+def display_question(question_id):
+    # Загрузите данные из базы данных для конкретного вопроса
+    question = Question.query.get(question_id)
+    # Загрузите ответы из базы данных для этого вопроса
+    answers = Answer.query.filter_by(id_question=question_id).all()
+    return render_template("question_detail.html", question=question, answers=answers)
+
+
 @app.route("/create_question", methods=["GET", "POST"])
 def create_question():
     if request.method == "POST":
         # Получаем данные из формы
         text = request.form.get("text")
-        image_url = request.form.get("image_url")
+        image_url = "sdd"  # request.form.get("image_url")
         difficulty_id = request.form.get("difficulty_id")
         modality_id = request.form.get("modality_id")
         target_body_id = request.form.get("target_body_id")
-        print(text, image_url, difficulty_id, modality_id, target_body_id)
+
+        difficulty = Difficult.query.get(difficulty_id)
+        modality = Modal.query.get(modality_id)
+        target_body = Target.query.get(target_body_id)
+
         # Создаем новый объект Question
-        question = Question(text=text, image_url=image_url, difficulty=difficulty_id, modality=modality_id,
-                            target_body=target_body_id)
+        question = Question(text=text, image_url=image_url, difficulty=difficulty, modality=modality,
+                            target_body=target_body)
 
         # Добавляем вопрос в сессию
         db.session.add(question)
-        # Сохраняем изменения в базе данных
         db.session.commit()
 
-        # После сохранения вопроса происходит перенаправление на эту же страницу
-        return redirect(url_for("question"))
+        # Получаем тексты ответов и их правильность из формы
+        answer_texts = request.form.getlist("answer_text[]")
+        correct_answers = request.form.getlist("correct_answer[]")
+        print(correct_answers)
+        question_answ = Question.query.get(question.id)
 
-    # Если метод запроса GET, просто отображаем страницу создания вопросов
+        # Создаем ответы и сохраняем их в базе данных
+        for text, is_correct in zip(answer_texts, correct_answers):
+
+            is_correct_bool = is_correct.lower() == 'true'
+            print(text, is_correct, is_correct_bool)
+            answer = Answer(name=text, is_correct=is_correct_bool, question_answ=question_answ)
+            db.session.add(answer)
+
+        db.session.commit()
+        return redirect(url_for("create_question"))
+
     else:
         # Загрузка данных для заполнения выпадающих списков из БД
         difficulties = Difficult.query.all()

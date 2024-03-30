@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Вопросы</title>
+    <title>Список вопросов</title>
     {% include 'top_menu_links.html'%}
     <!-- Подключаем стили Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -10,9 +10,13 @@
 <body>
     {% include 'top_menu.html' %}
     <div class="container">
-        <h1>Тут будут загружаться вопросы</h1>
-        <!-- Кнопка "Создать вопрос" -->
+        <h1>Список вопросов</h1>
         <a href="/create_question" class="btn btn-primary">Создать вопрос</a>
+        <ul>
+            {% for question in questions %}
+                <li><a href="/question/{{ question.id }}">Вопрос {{ question.id }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
 </body>
 </html>

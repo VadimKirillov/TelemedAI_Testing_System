@@ -54,6 +54,11 @@
                     {% endfor %}
                 </select>
             </div>
+            <!-- Поле для ввода вариантов ответа -->
+            <div class="form-group" id="answerOptionsContainer">
+                <label>Варианты ответа:</label>
+            </div>
+            <button type="button" class="btn btn-primary" id="addAnswerOption">Добавить вариант ответа</button>
 
             <!-- Кнопка "Сохранить" -->
             <button type="submit" class="btn btn-primary" id="saveButton">Сохранить</button>
@@ -63,37 +68,9 @@
     <!-- Подключаем скрипты Bootstrap и JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- JavaScript для обработки отправки формы -->
-    <script>
-        $(document).ready(function(){
-            // Обработчик отправки формы
-            $("#questionForm").submit(function(event){
-                // Отменяем стандартное действие отправки формы
-                event.preventDefault();
-
-                // Собираем данные формы
-                var formData = new FormData($(this)[0]);
-
-                // Отправляем данные на сервер
-                $.ajax({
-                    type: "POST",
-                    url: "/create_question",
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function(response){
-                        // Перенаправляем на страницу "question" после успешного сохранения
-                        window.location.href = "/question";
-                    },
-                    error: function(xhr, status, error) {
-                        // Обработка ошибок
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="static/errors.js"></script>
+    <script src="static/add_answers.js"></script>
 </body>
 </html>

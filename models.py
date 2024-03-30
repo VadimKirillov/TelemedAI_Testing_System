@@ -38,6 +38,8 @@ class Answer(db.Model):
     name = db.Column(db.String(255), nullable=False)
     is_correct = db.Column(db.Boolean, nullable=False, default=False)
     id_question = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
+    question_answ = db.relationship('Question', backref=db.backref('answers', lazy='dynamic'))
+
 
 
 
