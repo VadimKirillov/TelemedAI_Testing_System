@@ -8,9 +8,13 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
-    difficulty = db.Column(db.Integer, db.ForeignKey('difficult.id'), nullable=False)
-    modality = db.Column(db.Integer, db.ForeignKey('modal.id'), nullable=False)
-    target_body = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=False)
+    difficulty_id = db.Column(db.Integer, db.ForeignKey('difficult.id'), nullable=False)
+    modality_id = db.Column(db.Integer, db.ForeignKey('modal.id'), nullable=False)
+    target_body_id = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=False)
+
+    difficulty = db.relationship('Difficult', backref=db.backref('questions', lazy='dynamic'))
+    modality = db.relationship('Modal', backref=db.backref('questions', lazy='dynamic'))
+    target_body = db.relationship('Target', backref=db.backref('questions', lazy='dynamic'))
 
 
 class Difficult(db.Model):

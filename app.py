@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request
-from models import db
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from models import *
 from database import create_tables_if_not_exist
 import json
 import os
@@ -41,6 +41,38 @@ def tests():
 @app.route("/question")
 def question():
     return render_template("question.html")
+
+
+# Маршрут для страницы создания вопросов и сохранения данных
+@app.route("/create_question", methods=["GET", "POST"])
+def create_question():
+    if request.method == "POST":
+        # Получаем данные из формы
+        text = request.form.get("text")
+        image_url = request.form.get("image_url")
+        difficulty_id = request.form.get("difficulty_id")
+        modality_id = request.form.get("modality_id")
+        target_body_id = request.form.get("target_body_id")
+        print(text, image_url, difficulty_id, modality_id, target_body_id)
+        # Создаем новый объект Question
+        question = Question(text=text, image_url=image_url, difficulty=difficulty_id, modality=modality_id,
+                            target_body=target_body_id)
+
+        # Добавляем вопрос в сессию
+        db.session.add(question)
+        # Сохраняем изменения в базе данных
+        db.session.commit()
+
+        # После сохранения вопроса происходит перенаправление на эту же страницу
+        return redirect(url_for("question"))
+
+    # Если метод запроса GET, просто отображаем страницу создания вопросов
+    else:
+        # Загрузка данных для заполнения выпадающих списков из БД
+        difficulties = Difficult.query.all()
+        modals = Modal.query.all()
+        targets = Target.query.all()
+        return render_template("create_question.html", difficulties=difficulties, modals=modals, targets=targets)
 
 
 # Страница с созданием вопросов

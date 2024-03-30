@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Вопросы</title>
-    {%include 'top_menu_links.html'%}
+    {% include 'top_menu_links.html'%}
+    <!-- Подключаем стили Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-
-   {% include 'top_menu.html' %}
-  <h1>Тут будут загружаться вопросы</h1>
-
+    {% include 'top_menu.html' %}
+    <div class="container">
+        <h1>Тут будут загружаться вопросы</h1>
+        <!-- Кнопка "Создать вопрос" -->
+        <a href="/create_question" class="btn btn-primary">Создать вопрос</a>
+    </div>
 </body>
 </html>
