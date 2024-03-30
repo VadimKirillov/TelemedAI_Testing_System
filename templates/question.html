@@ -6,17 +6,48 @@
     {% include 'top_menu_links.html'%}
     <!-- Подключаем стили Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .question-card {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+            width: calc(90% - 20px); /* Устанавливаем ширину в 50% от родительского элемента с вычетом отступа */
+            height: 200px; /* Устанавливаем высоту */
+            margin-right: 20px; /* Добавляем отступ справа */
+            margin-bottom: 20px; /* Добавляем отступ снизу */
+            display: inline-block; /* Устанавливаем блочный вид, чтобы размещать в ряд */
+            vertical-align: top; /* Выравниваем по верхнему краю */
+        }
+
+        .question-card:hover {
+            box-shadow: 0 0 11px rgba(33,33,33,.2);
+        }
+
+        .question-link {
+            color: inherit;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
     {% include 'top_menu.html' %}
     <div class="container">
         <h1>Список вопросов</h1>
-        <a href="/create_question" class="btn btn-primary">Создать вопрос</a>
-        <ul>
+        <a href="/create_question" class="btn btn-primary mb-3">Создать вопрос</a>
+        <div class="row">
             {% for question in questions %}
-                <li><a href="/question/{{ question.id }}">Вопрос {{ question.id }}</a></li>
+                <div class="col-md-6 mb-3"> <!-- Устанавливаем отступ между колонками -->
+                    <a href="/question/{{ question.id }}" class="question-link">
+                        <div class="question-card">
+                            <h4>Вопрос: {{ question.text }}</h4>
+                            <p>{{ question.title }}</p>
+                        </div>
+                    </a>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     </div>
 </body>
 </html>
