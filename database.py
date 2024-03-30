@@ -1,7 +1,7 @@
 from models import db
 from sqlalchemy import inspect
 
-
+# TODO проверить все таблицы
 def create_tables_if_not_exist():
     connection = db.engine.connect()
     inspector = inspect(connection)

@@ -13,12 +13,13 @@
             padding: 20px;
             margin-bottom: 20px;
             transition: box-shadow 0.3s ease;
-            width: calc(90% - 20px); /* Устанавливаем ширину в 50% от родительского элемента с вычетом отступа */
-            height: 200px; /* Устанавливаем высоту */
-            margin-right: 20px; /* Добавляем отступ справа */
-            margin-bottom: 20px; /* Добавляем отступ снизу */
-            display: inline-block; /* Устанавливаем блочный вид, чтобы размещать в ряд */
-            vertical-align: top; /* Выравниваем по верхнему краю */
+            width: calc(90% - 20px);
+            height: 200px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+            display: inline-block;
+            vertical-align: top;
+            position: relative; /* Добавляем относительное позиционирование для кнопки удаления */
         }
 
         .question-card:hover {
@@ -29,20 +30,52 @@
             color: inherit;
             text-decoration: none;
         }
+
+        .delete-button {
+            position: absolute; /* Используем абсолютное позиционирование для кнопки удаления */
+            top: 10px; /* Отступ сверху */
+            left: 10px; /* Отступ слева */
+        }
     </style>
 </head>
 <body>
     {% include 'top_menu.html' %}
     <div class="container">
+        <form method="GET" action="{{ url_for('display_questions') }}">
+    <div class="form-group">
+        <label for="modal">Фильтр по модальности:</label>
+        <select class="form-control" id="modal" name="modal">
+            <option value="">Все модальности</option>
+            {% for modal in modals %}
+            <option value="{{ modal.id }}" {% if current_modal == modal.id %}selected{% endif %}>{{ modal.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="target_body">Фильтр по целевому органу:</label>
+        <select class="form-control" id="target_body" name="target_body">
+            <option value="">Все органы</option>
+            {% for target_body in target_bodies %}
+            <option value="{{ target_body.id }}" {% if current_target_body == target_body.id %}selected{% endif %}>{{ target_body.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Фильтровать</button>
+</form>
         <h1>Список вопросов</h1>
         <a href="/create_question" class="btn btn-primary mb-3">Создать вопрос</a>
         <div class="row">
             {% for question in questions %}
-                <div class="col-md-6 mb-3"> <!-- Устанавливаем отступ между колонками -->
+                <div class="col-md-6 mb-3">
                     <a href="/question/{{ question.id }}" class="question-link">
                         <div class="question-card">
-                            <h4>Вопрос: {{ question.text }}</h4>
+<!--                            <button class="btn btn-danger btn-sm delete-button">Удалить</button>-->
+                            <h4>{{ question.text }}</h4>
                             <p>{{ question.title }}</p>
+                            <p>Модальность: {{ question.modality.name }}</p>
+                            <p>Целевой орган: {{ question.target_body.name }}</p>
                         </div>
                     </a>
                 </div>

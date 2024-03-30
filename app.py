@@ -37,11 +37,32 @@ def tests():
     return render_template("tests.html")
 
 
-@app.route("/question")
+@app.route("/question", methods=["GET"])
 def display_questions():
-    # Загрузите данные из базы данных, например, список всех вопросов
-    questions = Question.query.all()
-    return render_template("question.html", questions=questions)
+    modal_id = request.args.get("modal")
+    target_body_id = request.args.get("target_body")
+
+    questions = Question.query
+
+    if modal_id:
+        questions = questions.filter(Question.modality_id == modal_id)
+
+    if target_body_id:
+        questions = questions.filter(Question.target_body_id == target_body_id)
+
+    questions = questions.all()
+
+    modals = Modal.query.all()
+    target_bodies = Target.query.all()
+
+    return render_template(
+        "question.html",
+        questions=questions,
+        modals=modals,
+        target_bodies=target_bodies,
+        current_modal=modal_id,
+        current_target_body=target_body_id,
+    )
 
 
 @app.route("/question/<int:question_id>")
@@ -52,6 +73,20 @@ def display_question(question_id):
     answers = Answer.query.filter_by(id_question=question_id).all()
     return render_template("question_detail.html", question=question, answers=answers)
 
+@app.route("/delete_question/<int:question_id>", methods=["POST"])
+def delete_question(question_id):
+    question = Question.query.get(question_id)
+    if question:
+        # Удалить связанные ответы
+        answers = Answer.query.filter_by(id_question=question_id).all()
+        for answer in answers:
+            db.session.delete(answer)
+
+        # Удалить вопрос
+        db.session.delete(question)
+        db.session.commit()
+
+    return redirect(url_for("display_questions"))
 
 @app.route("/create_question", methods=["GET", "POST"])
 def create_question():
@@ -83,13 +118,20 @@ def create_question():
 
         # Создаем ответы и сохраняем их в базе данных
         for text, is_correct in zip(answer_texts, correct_answers):
-
             is_correct_bool = is_correct.lower() == 'true'
             print(text, is_correct, is_correct_bool)
             answer = Answer(name=text, is_correct=is_correct_bool, question_answ=question_answ)
             db.session.add(answer)
 
         db.session.commit()
+
+        # test = Test(name='Тест 1', description='Описание теста', duration=60)
+
+        # test.questions.append(question)
+
+        # db.session.add(test)
+        # db.session.commit()
+
         return redirect(url_for("create_question"))
 
     else:

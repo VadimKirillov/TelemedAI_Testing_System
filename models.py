@@ -1,7 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-
+test_question = db.Table(
+    'test_question',
+    db.Column('test_id', db.Integer, db.ForeignKey('test.id'), primary_key=True),
+    db.Column('question_id', db.Integer, db.ForeignKey('question.id'), primary_key=True)
+)
 
 # Таблица с вопросами
 class Question(db.Model):
@@ -39,6 +43,17 @@ class Answer(db.Model):
     is_correct = db.Column(db.Boolean, nullable=False, default=False)
     id_question = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     question_answ = db.relationship('Question', backref=db.backref('answers', lazy='dynamic'))
+
+
+class Test(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.String(255), nullable=True)
+    duration = db.Column(db.Integer, nullable=False)
+
+    questions = db.relationship('Question', secondary=test_question, backref='tests')
+
 
 
 

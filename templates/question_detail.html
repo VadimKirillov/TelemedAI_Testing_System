@@ -17,7 +17,6 @@
             <p>Модальность: {{ question.modality.name }}</p>
             <p>Целевой орган: {{ question.target_body.name }}</p>
         </div>
-
         <div>
             <h4>Варианты ответа:</h4>
             <ul>
@@ -26,6 +25,9 @@
                 {% endfor %}
             </ul>
         </div>
+        <form action="{{ url_for('delete_question', question_id=question.id) }}" method="post">
+            <button type="submit" class="btn btn-danger">Удалить вопрос</button>
+        </form>
     </div>
 </body>
 </html>
