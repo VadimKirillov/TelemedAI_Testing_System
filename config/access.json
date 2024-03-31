@@ -1,0 +1,5 @@
+{
+  "admin": ["tests", "display_questions", "statistics"],
+  "user": ["tests"],
+  "unauthorized": [""]
+}

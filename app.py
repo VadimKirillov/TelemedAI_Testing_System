@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from sqlalchemy import desc
 
 from models import *
 from database import create_tables_if_not_exist
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, EqualTo
+from access import group_permission_decorator
+from forms import *
 import json
 import os
 
@@ -15,12 +17,10 @@ IMG_FOLDER = os.path.join("static", "photo")
 
 app.config["UPLOAD_FOLDER"] = IMG_FOLDER
 
+app.config['ACCESS_CONFIG'] = json.load(open('config/access.json', 'r'))
 
-# Форма для логина
-class LoginForm(FlaskForm):
-    username = StringField('Логин', validators=[DataRequired()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    submit = SubmitField('Войти')
+
+
 
 
 # Загрузка конфигурации из файла
@@ -50,18 +50,59 @@ def base():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+     if request.method == 'GET':
+         session.clear()
+         form = LoginForm()
+     else:
+        form = LoginForm()
+
+        if form.validate_on_submit():
+            username = form.username.data
+            password = form.password.data
+            user = User.query.filter_by(username=username).first()
+            if user == None:
+                return redirect(url_for('login'))
+            if password == user.password:
+                with open('config/access.json') as f:
+                    data = json.load(f)
+
+                # Поиск соответствия имени пользователя в JSON
+                for group_name, permissions in data.items():
+                    print(group_name)
+                    print(permissions)
+                    if user.role == group_name:
+                        print("IF")
+                        session['group_name'] = group_name
+                        session['username'] = username
+                        print(session['group_name'])
+                        return redirect(url_for('base'))
+                else:
+                    print("ELSE")
+                    session['group_name'] = 'unauthorized'
+                    print(session['group_name'])
+                    return redirect(url_for('base'))
+                # Здесь вы можете добавить логику для проверки введенных данных
+                # и аутентификации пользователя
+            else:
+                return redirect(url_for('login'))
+     return render_template('login.html', form=form)
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
     if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        # Здесь вы можете добавить логику для проверки введенных данных
-        # и аутентификации пользователя
-        return redirect(url_for('base'))
-    return render_template('login.html', form=form)
+        user = User(username=form.username.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You are now able to log in', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
 
 
 # Страница с тестами
 @app.route("/tests")
+@group_permission_decorator
 def tests():
     all_tests = Test.query.all()
     return render_template("tests.html", all_tests=all_tests)
@@ -71,14 +112,20 @@ def tests():
 @app.route("/tests/<int:test_id>", methods=["GET", "POST"])
 def start_test(test_id):
     if request.method == "POST":
-        pass
+        return redirect(url_for('main_go_test'))
     else:
         # Обработка GET запроса
         test = Test.query.get(test_id)
         return render_template("start_test.html", test=test)
 
 
+@app.route("/tests/<int:test_id>/main_go_test", methods=["GET", "POST"])
+def main_go_test(test_id):
+    return render_template("main_go_test.html")
+
+
 @app.route("/question", methods=["GET"])
+@group_permission_decorator
 def display_questions():
     modal_id = request.args.get("modal")
     target_body_id = request.args.get("target_body")
@@ -252,6 +299,7 @@ def create_question():
 
 # Страница со статистикой
 @app.route("/statistics")
+@group_permission_decorator
 def statistics():
     return render_template("statistics.html")
 

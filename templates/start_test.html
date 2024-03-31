@@ -21,5 +21,8 @@
     <img src="{{ url_for('static', filename=test.image_url) }}" alt="Test Image"class="small-image">
     <p><strong>Описание: </strong> {{ test.description }}</p>
     <p><strong>Продолжительность теста в минутах: </strong> {{ test.duration }}</p>
+    <form action="/tests/{{ test.id }}/main_go_test" method="POST">
+        <button type="submit">Начать</button>
+    </form>
 </body>
 </html>

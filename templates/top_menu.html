@@ -5,6 +5,16 @@
     <title>Title</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .top-menu .navbar {
+            display: flex; /* Включаем flexbox для навигационного меню */
+            justify-content: space-between; /* Распределяем элементы по ширине */
+            align-items: center; /* Выравниваем элементы по вертикали */
+        }
+        .navbar-text {
+            margin-right: 10px; /* Добавляем небольшой отступ между именем пользователя и кнопкой */
+        }
+    </style>
 </head>
 <body>
     <div class="top-menu">
@@ -23,11 +33,30 @@
                     <a class="nav-link" href="/statistics" onclick="loadPage('/statistics')">Статистика</a>
                 </li>
             </ul>
-            <div class="ml-auto">
-                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Войти</a>
-        </div>
+            <div>
+                <span id="usernameDisplay" class="navbar-text"></span>
+            </div>
+            <div>
+                <a id="loginButton" href="{{ url_for('login') }}" class="btn btn-outline-primary">Войти</a>
+                <a id="logoutButton" href="{{ url_for('login') }}" class="btn btn-outline-primary" style="display: none;">Выйти</a>
+            </div>
         </nav>
     </div>
     {% block content %}{% endblock %}
+
+    <script>
+        // Получаем значение username из сессии и отображаем его
+        const username = "{{ session.get('username') }}"; // Получаем значение username из сессии
+        if (username && username !== "None") {
+            document.getElementById('usernameDisplay').textContent = username;
+            document.getElementById('loginButton').style.display = 'none';
+            document.getElementById('logoutButton').style.display = 'block';
+        } else {
+            // Если значение username не найдено или равно "None", скрываем соответствующий блок
+            document.getElementById('usernameDisplay').style.display = 'none';
+            document.getElementById('loginButton').style.display = 'block';
+            document.getElementById('logoutButton').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
