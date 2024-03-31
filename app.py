@@ -71,7 +71,7 @@ def display_questions():
     modal_id = request.args.get("modal")
     target_body_id = request.args.get("target_body")
 
-    questions = Question.query
+    questions = Question.query.order_by(Question.text)
 
     if modal_id:
         questions = questions.filter(Question.modality_id == modal_id)
@@ -94,11 +94,60 @@ def display_questions():
     )
 
 
-@app.route("/question/<int:question_id>")
+# @app.route("/question/<int:question_id>")
+# def display_question(question_id):
+#     question = Question.query.get(question_id)
+#     answers = Answer.query.filter_by(id_question=question_id).all()
+#
+#     # Получение данных modal.name, difficult.name, target.name
+#     modal_name = question.modality.name
+#     difficult_name = question.difficulty.name
+#     target_name = question.target_body.name
+#
+#     return render_template("question_detail.html", question=question, answers=answers,
+#                            modal_name=modal_name, difficult_name=difficult_name, target_name=target_name)
+
+
+@app.route("/question/<int:question_id>", methods=["GET", "POST"])
 def display_question(question_id):
-    question = Question.query.get(question_id)
-    answers = Answer.query.filter_by(id_question=question_id).all()
-    return render_template("question_detail.html", question=question, answers=answers)
+    if request.method == "POST":
+
+        question = Question.query.get(question_id)
+
+        text = request.form.get("text")
+
+        difficulty_id = request.form.get("difficulty_id")
+        modality_id = request.form.get("modality_id")
+        target_body_id = request.form.get("target_body_id")
+
+        difficulty = Difficult.query.get(difficulty_id)
+        modality = Modal.query.get(modality_id)
+        target_body = Target.query.get(target_body_id)
+
+        question.text = text
+        question.difficulty = difficulty
+        question.modality = modality
+        question.target_body = target_body
+
+        db.session.commit()
+        return redirect(url_for("display_questions"))
+    else:
+        # Загрузка данных для заполнения выпадающих списков из БД
+        question = Question.query.get(question_id)
+
+        difficulties = Difficult.query.all()
+        modals = Modal.query.all()
+        targets = Target.query.all()
+
+        modal_id = question.modality_id
+        default_difficulty_id = question.difficulty_id
+        target_id = question.target_body_id
+        answers = Answer.query.filter_by(id_question=question_id).all()
+
+        return render_template("question_edit.html", question=question, modal_id=modal_id,
+                               default_difficulty_id=default_difficulty_id,
+                               target_id=target_id, difficulties=difficulties, modals=modals, targets=targets,
+                               answers=answers)
 
 
 @app.route("/delete_question/<int:question_id>", methods=["POST"])

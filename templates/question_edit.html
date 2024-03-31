@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание вопросов</title>
+    {% include 'top_menu_links.html'%}
+    <!-- Подключаем стили Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    {% include 'top_menu.html' %}
+
+    <div class="container mt-5">
+        <h1>Создание вопросов</h1>
+
+        <!-- Форма для отправки данных -->
+        <form method="POST" id="questionForm" enctype="multipart/form-data">
+            <!-- Загрузка изображений -->
+            <div class="form-group">
+                <label for="image">Загрузить изображение:</label>
+                <input type="file" class="form-control-file" id="image" name="image">
+            </div>
+
+<!--              <div class="form-group">-->
+<!--    <label for="image">Загрузить изображение:</label>-->
+<!--    <input type="file" class="form-control-file" id="image" name="image" accept="image/*">-->
+<!--    <small id="imageHelpBlock" class="form-text text-muted">Выберите изображение в формате JPG, PNG или GIF.</small>-->
+<!--    <br>-->
+<!--    <img id="previewImage" src="default_image.jpg" alt="Default Image" style="max-width: 200px;">-->
+<!--</div>-->
+
+
+            <!-- Ввод вопроса -->
+            <div class="form-group">
+                <label for="text">Вопрос:</label>
+                <textarea class="form-control" id="text" name="text" rows="3" required>{{question.text}}</textarea>
+            </div>
+
+            <!-- Выпадающие списки -->
+            <div class="form-group">
+                <label for="difficulty_id">Сложность:</label>
+                <select class="form-control" id="difficulty_id" name="difficulty_id" required>
+                   {% for difficulty in difficulties %}
+                        {% if difficulty.id == default_difficulty_id %}
+                            <option value="{{ difficulty.id }}" selected>{{ difficulty.name }}</option> <!-- Устанавливаем значение по умолчанию -->
+                        {% else %}
+                            <option value="{{ difficulty.id }}">{{ difficulty.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="modality_id">Модальность:</label>
+                <select class="form-control" id="modality_id" name="modality_id" required>
+                      {% for modal in modals %}
+                        {% if modal.id == modal_id %}
+                            <option value="{{ modal_id}}" selected>{{ modal.name }}</option> <!-- Устанавливаем значение по умолчанию -->
+                        {% else %}
+                            <option value="{{ modal_id }}">{{ modal.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="target_body_id">Целевой орган:</label>
+                <select class="form-control" id="target_body_id" name="target_body_id" required>
+                    {% for target in targets %}
+                        {% if target.id == target_id %}
+                            <option value="{{ target.id}}" selected>{{ target.name }}</option> <!-- Устанавливаем значение по умолчанию -->
+                        {% else %}
+                            <option value="{{target.id }}">{{ target.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Поле для ввода вариантов ответа -->
+            <div class="form-group" id="answerOptionsContainer">
+                <label>Варианты ответа:</label>
+                    {% for answer in answers %}
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="answer_text[]" placeholder="Текст ответа" value="{{ answer.name }}">
+                        <select class="form-control" name="correct_answer[]">
+                            <option value="true" {% if answer.is_correct %} selected {% endif %}>Правильный ответ</option>
+                            <option value="false" {% if not answer.is_correct %} selected {% endif %}>Неправильный ответ</option>
+                        </select>
+                        <button type="button" class="btn btn-danger deleteOption">Удалить</button>
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-primary" id="addAnswerOption">Добавить вариант ответа</button>
+
+            <!-- Кнопка "Сохранить" -->
+            <button type="submit" class="btn btn-primary" id="saveButton">Сохранить</button>
+          </form>
+        <!-- Кнопка "Назад" -->
+        <a href="/question" class="btn btn-outline-primary mt-3">Назад</a>
+    </div>
+
+    <!-- Подключаем скрипты Bootstrap и JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="static/errors.js"></script>
+    <script src="static/add_answers.js"></script>
+</body>
+</html>

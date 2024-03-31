@@ -14,7 +14,6 @@
             margin-bottom: 20px;
             transition: box-shadow 0.3s ease;
             width: calc(90% - 20px);
-            height: 200px;
             margin-right: 20px;
             margin-bottom: 20px;
             display: inline-block;
@@ -31,10 +30,12 @@
             text-decoration: none;
         }
 
-        .delete-button {
-            position: absolute; /* Используем абсолютное позиционирование для кнопки удаления */
-            top: 10px; /* Отступ сверху */
-            left: 10px; /* Отступ слева */
+        .question-image {
+            max-width: 150px; /* Уменьшил максимальную ширину изображения */
+            max-height: 100px; /* Уменьшил максимальную высоту изображения */
+            border-radius: 5px; /* Добавляем закругление углов */
+            margin-right: 20px; /* Добавляем отступ справа от изображения */
+            float: left; /* Выравниваем изображение по левому краю */
         }
     </style>
 </head>
@@ -68,15 +69,18 @@
         <a href="/create_question" class="btn btn-primary mb-3">Создать вопрос</a>
         <div class="row">
             {% for question in questions %}
-                <div class="col-md-6 mb-3">
+                <div class="col-md-12 mb-3">
                     <a href="/question/{{ question.id }}" class="question-link">
                         <div class="question-card">
-
-<!--                            <button class="btn btn-danger btn-sm delete-button">Удалить</button>-->
-                            <h4>{{ question.text }}</h4>
-                            <p>{{ question.title }}</p>
-                            <p>Модальность: {{ question.modality.name }}</p>
-                            <p>Целевой орган: {{ question.target_body.name }}</p>
+                            <img src="{{ url_for('static', filename=question.image_url) }}" alt="Изображение вопроса" class="question-image">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4>{{ question.text }}</h4>
+                                    <p>{{ question.title }}</p>
+                                    <p>Модальность: {{ question.modality.name }}</p>
+                                    <p>Целевой орган: {{ question.target_body.name }}</p>
+                                </div>
+                            </div>
                         </div>
                     </a>
                 </div>

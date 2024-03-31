@@ -21,9 +21,9 @@
         <h1>Детали вопроса</h1>
         <div>
             <h3>TEST 2:39</h3>
-            <p>Сложность: Сложно</p>
-            <p>Модальность: Рентген</p>
-            <p>Целевой орган: Печень</p>
+            <p>Сложность: {{ difficult_name }}</p>
+            <p>Модальность: {{ modal_name }} </p>
+            <p>Целевой орган: {{ target_name }}</p>
         </div>
         <img src="{{ url_for('static', filename=question.image_url) }}" alt="Uploaded Image" class="small-image">
 
