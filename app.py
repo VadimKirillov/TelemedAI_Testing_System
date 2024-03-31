@@ -63,7 +63,19 @@ def login():
 # Страница с тестами
 @app.route("/tests")
 def tests():
-    return render_template("tests.html")
+    all_tests = Test.query.all()
+    return render_template("tests.html", all_tests=all_tests)
+
+
+# Страница с тестами
+@app.route("/tests/<int:test_id>", methods=["GET", "POST"])
+def start_test(test_id):
+    if request.method == "POST":
+        pass
+    else:
+        # Обработка GET запроса
+        test = Test.query.get(test_id)
+        return render_template("start_test.html", test=test)
 
 
 @app.route("/question", methods=["GET"])

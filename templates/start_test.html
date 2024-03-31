@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ test.name }}</title>
+    {%include 'top_menu_links.html'%}
+
+      <style>
+        .small-image {
+            max-width: 200px; /* Максимальная ширина изображения */
+            height: auto; /* Автоматическая высота, чтобы сохранить пропорции */
+            display: block; /* Делаем изображение блочным элементом */
+            margin-top: 20px; /* Отступ сверху */
+        }
+    </style>
+
+</head>
+<body>
+{% include 'top_menu.html' %}
+ <h1>{{ test.name }}</h1>
+    <img src="{{ url_for('static', filename=test.image_url) }}" alt="Test Image"class="small-image">
+    <p><strong>Описание: </strong> {{ test.description }}</p>
+    <p><strong>Продолжительность теста в минутах: </strong> {{ test.duration }}</p>
+</body>
+</html>
