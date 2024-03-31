@@ -20,16 +20,16 @@
     <div class="top-menu">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
+                <li id="homeTab" class="nav-item">
                     <a class="nav-link" href="/" onclick="loadPage('/')">Главная страница <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item">
+                <li id="testsTab" class="nav-item">
                     <a class="nav-link" href="/tests" onclick="loadPage('/tests')">Тесты <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item">
+                <li id="questionTab" class="nav-item">
                     <a class="nav-link" href="/question" onclick="loadPage('/question')">Вопросы</a>
                 </li>
-                <li class="nav-item">
+                <li id="statisticsTab" class="nav-item">
                     <a class="nav-link" href="/statistics" onclick="loadPage('/statistics')">Статистика</a>
                 </li>
             </ul>
@@ -45,8 +45,36 @@
     {% block content %}{% endblock %}
 
     <script>
+        function toggleTabs() {
+    const groupName = "{{ session.get('group_name') }}";
+
+    // Получаем ссылки на элементы <li>
+    const homeTab = document.getElementById('homeTab');
+    const testsTab = document.getElementById('testsTab');
+    const questionTab = document.getElementById('questionTab');
+    const statisticsTab = document.getElementById('statisticsTab');
+
+    // Устанавливаем видимость вкладок в зависимости от значения groupName
+    if (groupName === 'user') {
+        homeTab.style.display = 'block';
+        testsTab.style.display = 'block';
+        questionTab.style.display = 'none';
+        statisticsTab.style.display = 'none';
+    } else if (groupName === 'admin') {
+        homeTab.style.display = 'block';
+        testsTab.style.display = 'block';
+        questionTab.style.display = 'block';
+        statisticsTab.style.display = 'block';
+    } else {
+        homeTab.style.display = 'block';
+        testsTab.style.display = 'none';
+        questionTab.style.display = 'none';
+        statisticsTab.style.display = 'none';
+    }
+    }
+        window.onload = toggleTabs;
         // Получаем значение username из сессии и отображаем его
-        const username = "{{ session.get('username') }}"; // Получаем значение username из сессии
+        const username = "{{ session.get('group_name') }}"; // Получаем значение username из сессии
         if (username && username !== "None") {
             document.getElementById('usernameDisplay').textContent = username;
             document.getElementById('loginButton').style.display = 'none';
@@ -57,6 +85,8 @@
             document.getElementById('loginButton').style.display = 'block';
             document.getElementById('logoutButton').style.display = 'none';
         }
+
+
     </script>
 </body>
 </html>
