@@ -6,17 +6,27 @@
     {% include 'top_menu_links.html'%}
     <!-- Подключаем стили Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .small-image {
+            max-width: 200px; /* Максимальная ширина изображения */
+            height: auto; /* Автоматическая высота, чтобы сохранить пропорции */
+            display: block; /* Делаем изображение блочным элементом */
+            margin-top: 20px; /* Отступ сверху */
+        }
+    </style>
 </head>
 <body>
     {% include 'top_menu.html' %}
     <div class="container">
         <h1>Детали вопроса</h1>
         <div>
-            <h3>{{ question.text }}</h3>
-            <p>Сложность: {{ question.difficulty.name }}</p>
-            <p>Модальность: {{ question.modality.name }}</p>
-            <p>Целевой орган: {{ question.target_body.name }}</p>
+            <h3>TEST 2:39</h3>
+            <p>Сложность: Сложно</p>
+            <p>Модальность: Рентген</p>
+            <p>Целевой орган: Печень</p>
         </div>
+        <img src="{{ url_for('static', filename=question.image_url) }}" alt="Uploaded Image" class="small-image">
+
         <div>
             <h4>Варианты ответа:</h4>
             <ul>
@@ -31,3 +41,4 @@
     </div>
 </body>
 </html>
+

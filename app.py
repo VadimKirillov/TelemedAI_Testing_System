@@ -11,6 +11,9 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '12345'
+IMG_FOLDER = os.path.join("static", "photo")
+
+app.config["UPLOAD_FOLDER"] = IMG_FOLDER
 
 
 # Форма для логина
@@ -125,28 +128,42 @@ def create_question():
         target_body_id = request.form.get("target_body_id")
 
         latest_question = Question.query.order_by(desc(Question.id)).first()
+        latest_question = latest_question.id if latest_question else 0
 
-        image_url = str(latest_question.id)
+        image_url = str(latest_question + 1)
+
         file = request.files['image']
         if file and '.' in file.filename:
             extension = file.filename.rsplit('.', 1)[1].lower()
             if extension in {'jpg', 'jpeg', 'png'}:
                 image_url += '.' + extension
-                full_image_path = os.path.join("static/photo", image_url).replace('\\', '/')
+                path_in_bd = os.path.join("/photo", image_url).replace('\\', '/')
+                print("path   ", path_in_bd)
                 file.save(os.path.join("static/photo", image_url))
 
-        print("full_image_path",full_image_path)
         difficulty = Difficult.query.get(difficulty_id)
         modality = Modal.query.get(modality_id)
         target_body = Target.query.get(target_body_id)
         print(image_url)
         # Создаем новый объект Question
-        question = Question(text=text, image_url=full_image_path, difficulty=difficulty, modality=modality,
+        question = Question(text=text, image_url=path_in_bd, difficulty=difficulty, modality=modality,
                             target_body=target_body)
 
         # Добавляем вопрос в сессию
         db.session.add(question)
         db.session.commit()
+
+        latest_question_2 = Question.query.order_by(desc(Question.id)).first()
+        if latest_question_2 and image_url.split('.')[0] != str(latest_question_2.id):
+            image_url = str(latest_question_2.id) + '.' + extension
+            full_image_path = os.path.join("static/photo", image_url).replace('\\', '/')
+
+            path_in_bd = os.path.join("/photo", image_url).replace('\\', '/')
+            print("path   ", path_in_bd)
+
+            file.save(full_image_path)
+            question.image_url = path_in_bd
+            db.session.commit()
 
         # Получаем тексты ответов и их правильность из формы
         answer_texts = request.form.getlist("answer_text[]")
