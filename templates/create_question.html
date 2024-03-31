@@ -14,11 +14,11 @@
         <h1>Создание вопросов</h1>
 
         <!-- Форма для отправки данных -->
-        <form method="POST" id="questionForm">
+        <form method="POST" id="questionForm" enctype="multipart/form-data">
             <!-- Загрузка изображений -->
             <div class="form-group">
                 <label for="image">Загрузить изображение:</label>
-                <input type="file" class="form-control-file" id="image">
+                <input type="file" class="form-control-file" id="image" name="image">
             </div>
 
             <!-- Ввод вопроса -->
@@ -62,7 +62,7 @@
 
             <!-- Кнопка "Сохранить" -->
             <button type="submit" class="btn btn-primary" id="saveButton">Сохранить</button>
-        </form>
+          </form>
         <!-- Кнопка "Назад" -->
         <a href="/question" class="btn btn-outline-primary mt-3">Назад</a>
     </div>

@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from sqlalchemy import desc
+
 from models import *
 from database import create_tables_if_not_exist
 from flask_wtf import FlaskForm
@@ -9,6 +11,7 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '12345'
+
 
 # Форма для логина
 class LoginForm(FlaskForm):
@@ -90,9 +93,7 @@ def display_questions():
 
 @app.route("/question/<int:question_id>")
 def display_question(question_id):
-    # Загрузите данные из базы данных для конкретного вопроса
     question = Question.query.get(question_id)
-    # Загрузите ответы из базы данных для этого вопроса
     answers = Answer.query.filter_by(id_question=question_id).all()
     return render_template("question_detail.html", question=question, answers=answers)
 
@@ -118,17 +119,29 @@ def create_question():
     if request.method == "POST":
         # Получаем данные из формы
         text = request.form.get("text")
-        image_url = "sdd"  # request.form.get("image_url")
+
         difficulty_id = request.form.get("difficulty_id")
         modality_id = request.form.get("modality_id")
         target_body_id = request.form.get("target_body_id")
 
+        latest_question = Question.query.order_by(desc(Question.id)).first()
+
+        image_url = str(latest_question.id)
+        file = request.files['image']
+        if file and '.' in file.filename:
+            extension = file.filename.rsplit('.', 1)[1].lower()
+            if extension in {'jpg', 'jpeg', 'png'}:
+                image_url += '.' + extension
+                full_image_path = os.path.join("static/photo", image_url).replace('\\', '/')
+                file.save(os.path.join("static/photo", image_url))
+
+        print("full_image_path",full_image_path)
         difficulty = Difficult.query.get(difficulty_id)
         modality = Modal.query.get(modality_id)
         target_body = Target.query.get(target_body_id)
-
+        print(image_url)
         # Создаем новый объект Question
-        question = Question(text=text, image_url=image_url, difficulty=difficulty, modality=modality,
+        question = Question(text=text, image_url=full_image_path, difficulty=difficulty, modality=modality,
                             target_body=target_body)
 
         # Добавляем вопрос в сессию
@@ -149,14 +162,6 @@ def create_question():
             db.session.add(answer)
 
         db.session.commit()
-
-        # test = Test(name='Тест 1', description='Описание теста', duration=60)
-
-        # test.questions.append(question)
-
-        # db.session.add(test)
-        # db.session.commit()
-
         return redirect(url_for("create_question"))
 
     else:

@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import BYTEA
 
 db = SQLAlchemy()
 test_question = db.Table(
