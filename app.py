@@ -301,7 +301,17 @@ def create_question():
 @app.route("/statistics")
 @group_permission_decorator
 def statistics():
-    return render_template("statistics.html")
+    # Получить количество вопросов по категориям сложности
+    difficulty_counts = db.session.query(Difficult.name, db.func.count(Question.difficulty_id)).join(Question).group_by(Difficult.name).all()
+
+    # Получить количество вопросов по модальностям
+    modality_counts = db.session.query(Modal.name, db.func.count(Question.modality_id)).join(Question).group_by(Modal.name).all()
+
+    # Получить количество вопросов по целевым областям тела
+    target_counts = db.session.query(Target.name, db.func.count(Question.target_body_id)).join(Question).group_by(Target.name).all()
+
+    return render_template("statistics.html", difficulty_counts=difficulty_counts, modality_counts=modality_counts,
+                           target_counts=target_counts)
 
 
 if __name__ == "__main__":
