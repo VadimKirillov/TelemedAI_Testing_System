@@ -5,10 +5,13 @@
     <title>Уже само тестирование</title>
 </head>
 <body>
-    <!-- Кнопка "Далее" -->
-   <p>{{ random_id }}</p>
-    <button id="nextButton">Далее</button>
     <!-- Отображение random_id -->
+    <p>{{ random_id }}</p>
+
+     <!-- Форма для отправки POST-запроса -->
+    <form action="/tests/{{ test_id }}/main_go_test/{{ random_id }}" method="post">
+        <button type="submit" class="btn btn-primary mb-3">Вперед</button>
+    </form>
 
 </body>
 </html>

@@ -169,18 +169,38 @@ def main_go_test(test_id):
 
             print("id_list", id_list)
             random_id = random.choice(id_list)
+            attempt_question = TestAttemptQuestions.query.get(random_id)
+            attempt_question.num = 1
             print("random_id", random_id)
             print('Новая попытка теста начата.', 'success')
-            # , random_id=random_id
-            #
 
     return render_template("main_go_test.html", random_id=random_id, test_id=test_id)
 
 
-@app.route("/tests/<int:test_id>/main_go_test/<int:random_id>")
+@app.route("/tests/<int:test_id>/main_go_test/<int:random_id>", methods=["GET", "POST"])
 def question_page(random_id, test_id):
+    if request.method == "GET":
+        start_time = datetime.now()
 
-    return render_template("process_test.html", random_id=random_id)
+        # Создаем запись в таблице TestAttemptQuestions
+        attempt_question = TestAttemptQuestions.query.get(random_id)
+        attempt_question.start_time = start_time
+        return render_template("process_test.html", random_id=random_id)
+    else:
+        print("POSTTTTTTTTTTTTTTTTTTTTTTT ")
+        end_time = datetime.now()
+        attempt_question = TestAttemptQuestions.query.get(random_id)
+        attempt_question.end_time = end_time
+
+        filtered_attempt_questions = TestAttemptQuestions.query.filter_by(id_attempt=attempt_question.id_attempt,
+                                                                          test=attempt_question.test, num=None).all()
+        id_list = [attempt_question.id for attempt_question in filtered_attempt_questions]
+        new_random_id = random.choice(id_list)
+        new_attempt_question = TestAttemptQuestions.query.get(random_id)
+        new_attempt_question.num = attempt_question.num+1
+        print("new_attempt_question", new_attempt_question)
+
+        return render_template("process_test.html", random_id=new_random_id)
 
 
 @app.route("/question", methods=["GET"])
