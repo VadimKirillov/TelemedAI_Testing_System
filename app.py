@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
-from sqlalchemy import desc, select
+from sqlalchemy import desc, select, and_
 
 from models import *
 from database import create_tables_if_not_exist
@@ -8,7 +8,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo
 from access import group_permission_decorator
 from forms import *
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import random
@@ -129,9 +129,17 @@ def main_go_test(test_id):
         existing_attempt = TestAttempt.query.filter_by(test_id=test_id, user_id=user_id, status='in-progress').first()
         if existing_attempt:
             # Если уже существует попытка теста, выводим сообщение об ошибке
+            # current_question = TestAttemptQuestions.query.filter_by(id_attempt=existing_attempt.id).order_by(
+            #     desc(TestAttemptQuestions.num)).first()
+            current_question = TestAttemptQuestions.query.filter(
+                and_(TestAttemptQuestions.id_attempt == existing_attempt.id,
+                     TestAttemptQuestions.num != None)).order_by(desc(TestAttemptQuestions.num)).first()
             new_attempt = existing_attempt
+            print("current_question.num ", current_question.num)
+            print("current_question.id ", current_question.id)
             print('Вы уже начали этот тест.', 'error')
-            return redirect(url_for('tests'))
+            return redirect(url_for("question_page", random_id=current_question.id, test_id=test_id))
+            # return redirect(url_for('tests'))
         else:
             print('阿萨')
             # Создаем новую запись в таблице test_attempt
@@ -159,20 +167,17 @@ def main_go_test(test_id):
                 db.session.add(new_attempt_question)
             db.session.commit()
 
-            # Получаем список всех записей из таблицы TestAttemptQuestions
-            attempt_questions = TestAttemptQuestions.query.all()
-
             # Создаем список для хранения кортежей (id_attempt, test_id)
             filtered_attempt_questions = TestAttemptQuestions.query.filter_by(id_attempt=new_attempt.id,
                                                                               test=test_question.test_id).all()
             id_list = [attempt_question.id for attempt_question in filtered_attempt_questions]
 
-            print("id_list", id_list)
+            # print("id_list", id_list)
             random_id = random.choice(id_list)
             attempt_question = TestAttemptQuestions.query.get(random_id)
             attempt_question.num = 1
-            print("random_id", random_id)
-            print('Новая попытка теста начата.', 'success')
+            db.session.add(attempt_question)
+            db.session.commit()
 
     return render_template("main_go_test.html", random_id=random_id, test_id=test_id)
 
@@ -181,26 +186,93 @@ def main_go_test(test_id):
 def question_page(random_id, test_id):
     if request.method == "GET":
         start_time = datetime.now()
-
         # Создаем запись в таблице TestAttemptQuestions
         attempt_question = TestAttemptQuestions.query.get(random_id)
-        attempt_question.start_time = start_time
-        return render_template("process_test.html", random_id=random_id)
+        question = Question.query.get(attempt_question.question)
+        answers = Answer.query.filter_by(id_question=question.id).all()
+        random.shuffle(answers)
+        is_correct_values = []
+        # Проходимся по каждому объекту Answer и добавляем его is_correct в массив
+        for answer in answers:
+            is_correct_values.append(answer.is_correct)
+        true_count = is_correct_values.count(True)
+        multiple = True if true_count > 1 else False
+
+        if (attempt_question.start_time == None):
+            attempt_question.start_time = start_time
+            db.session.add(attempt_question)
+            db.session.commit()
+
+        time_end = Test.query.get(test_id)
+        time_end = time_end.duration
+        test_attempt = TestAttempt.query.get(attempt_question.id_attempt)
+        begin_time = test_attempt.start_time
+
+        print("begin_time", begin_time)
+
+        new_time = begin_time + timedelta(minutes=time_end)
+        time =  new_time - start_time
+        print("time",time)
+        minutes = time.seconds // 60
+        seconds = time.seconds % 60
+        print("minutes", minutes)
+        print("seconds", seconds)
+        return render_template("process_test.html", random_id=random_id, test_id=test_id, question=question,
+                               answers=answers,
+                               multiple=multiple, minutes=minutes,seconds = seconds )
     else:
-        print("POSTTTTTTTTTTTTTTTTTTTTTTT ")
+        selected_answers = request.form.getlist('answers[]')
+        attempt_question = TestAttemptQuestions.query.get(random_id)
+        question = Question.query.get(attempt_question.question)
+        answers = Answer.query.filter_by(id_question=question.id).all()
+        correct_answers = []
+        for answer in answers:
+            if (answer.is_correct):
+                correct_answers.append(answer.id)
+        selected_answers = [int(ans) for ans in selected_answers]
+        selected_answers.sort()
+        print("correct_answers", correct_answers)
+        print("selected_answers", selected_answers)
+
+        if selected_answers == correct_answers:
+            attempt_question.correct = 1
+        else:
+            attempt_question.correct = 0
+        db.session.add(attempt_question)
+        db.session.commit()
+
         end_time = datetime.now()
         attempt_question = TestAttemptQuestions.query.get(random_id)
-        attempt_question.end_time = end_time
-
+        if (attempt_question.end_time == None):
+            attempt_question.end_time = end_time
         filtered_attempt_questions = TestAttemptQuestions.query.filter_by(id_attempt=attempt_question.id_attempt,
                                                                           test=attempt_question.test, num=None).all()
-        id_list = [attempt_question.id for attempt_question in filtered_attempt_questions]
-        new_random_id = random.choice(id_list)
-        new_attempt_question = TestAttemptQuestions.query.get(random_id)
-        new_attempt_question.num = attempt_question.num+1
-        print("new_attempt_question", new_attempt_question)
+        if (filtered_attempt_questions):
+            id_list = [attempt_question.id for attempt_question in filtered_attempt_questions]
+            new_random_id = random.choice(id_list)
+            new_attempt_question = TestAttemptQuestions.query.get(new_random_id)
+            new_attempt_question.num = attempt_question.num + 1
+            db.session.add(new_attempt_question)
+            db.session.commit()
+        else:
+            end_time = datetime.now()
+            attempt_question = TestAttemptQuestions.query.get(random_id)
+            id_attempt = attempt_question.id_attempt
+            test_attempt = TestAttempt.query.get(id_attempt)
+            db.session.add(attempt_question)
+            db.session.commit()
 
-        return render_template("process_test.html", random_id=new_random_id)
+            test_attempt.status = 'done'
+            test_attempt.end_time = end_time
+            db.session.add(test_attempt)
+            db.session.commit()
+            return redirect(url_for("end_test", id_attempt=id_attempt))
+        return redirect(url_for("question_page", random_id=new_random_id, test_id=test_id))
+
+
+@app.route("/tests/<int:id_attempt>/end_test")
+def end_test(id_attempt):
+    return render_template("end_test.html")
 
 
 @app.route("/question", methods=["GET"])

@@ -9,9 +9,83 @@
     <p>{{ random_id }}</p>
 
      <!-- Форма для отправки POST-запроса -->
-    <form action="/tests/{{ test_id }}/main_go_test/{{ random_id }}" method="post">
-        <button type="submit" class="btn btn-primary mb-3">Вперед</button>
-    </form>
+     <div id="timer"></div>
+    <p>{{ question.text }}</p>
+    <div>
+        {% if multiple %}
+            <h4>Множественный выбор:</h4>
+            <form id="testForm" action="/tests/{{ test_id }}/main_go_test/{{ random_id }}" method="post">
+                <ul>
+                    {% for answer in answers %}
+                        <li>
+                            <input type="checkbox" id="answer_{{ answer.id }}" name="answers[]" value="{{ answer.id }}">
+                            <label for="answer_{{ answer.id }}">{{ answer.name }}</label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <button type="button" onclick="submitForm()" class="btn btn-primary mb-3">Вперед</button>
+            </form>
+        {% else %}
+            <h4>Выберите один вариант ответа:</h4>
+            <form id="testForm" action="/tests/{{ test_id }}/main_go_test/{{ random_id }}" method="post">
+                <ul>
+                    {% for answer in answers %}
+                        <li>
+                            <input type="radio" id="answer_{{ answer.id }}" name="answers[]" value="{{ answer.id }}">
+                            <label for="answer_{{ answer.id }}">{{ answer.name }}</label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <button type="button" onclick="submitForm()" class="btn btn-primary mb-3">Вперед</button>
+            </form>
+        {% endif %}
+    </div>
 
+
+    <script>
+        // Функция для отображения таймера
+        function startTimer(duration, display) {
+            var timer = duration, minutes, seconds;
+            setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    timer = duration;
+                }
+            }, 1000);
+        }
+
+        // Запуск таймера при загрузке страницы
+        window.onload = function () {
+            var fiveMinutes = 60 * {{minutes}}+{{seconds}},
+                display = document.querySelector('#timer');
+            startTimer(fiveMinutes, display);
+        };
+    </script>
+
+    <script>
+        function submitForm() {
+            var form = document.getElementById("testForm");
+            var checkboxes = form.querySelectorAll('input[type="checkbox"]');
+            var selectedAnswers = [];
+
+            checkboxes.forEach(function(checkbox) {
+                if (checkbox.checked) {
+                    selectedAnswers.push(checkbox.value);
+                }
+            });
+
+            // Добавьте здесь любую логику для обработки выбранных ответов
+
+            // После обработки отправьте форму
+            form.submit();
+        }
+    </script>
 </body>
 </html>
