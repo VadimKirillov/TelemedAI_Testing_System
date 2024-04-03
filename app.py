@@ -135,9 +135,6 @@ def main_go_test(test_id):
                 and_(TestAttemptQuestions.id_attempt == existing_attempt.id,
                      TestAttemptQuestions.num != None)).order_by(desc(TestAttemptQuestions.num)).first()
             new_attempt = existing_attempt
-            print("current_question.num ", current_question.num)
-            print("current_question.id ", current_question.id)
-            print('Вы уже начали этот тест.', 'error')
             return redirect(url_for("question_page", random_id=current_question.id, test_id=test_id))
             # return redirect(url_for('tests'))
         else:
@@ -178,8 +175,7 @@ def main_go_test(test_id):
             attempt_question.num = 1
             db.session.add(attempt_question)
             db.session.commit()
-
-    return render_template("main_go_test.html", random_id=random_id, test_id=test_id)
+    return redirect(url_for("question_page", random_id=random_id, test_id=test_id))
 
 
 @app.route("/tests/<int:test_id>/main_go_test/<int:random_id>", methods=["GET", "POST"])
