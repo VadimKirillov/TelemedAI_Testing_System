@@ -2,11 +2,16 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import BYTEA
 
 db = SQLAlchemy()
-test_question = db.Table(
-    'test_question',
-    db.Column('test_id', db.Integer, db.ForeignKey('test.id'), primary_key=True),
-    db.Column('question_id', db.Integer, db.ForeignKey('question.id'), primary_key=True)
-)
+
+
+class TestQuestions(db.Model):
+    test_id = db.Column(db.Integer, db.ForeignKey('test.id'), primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
+
+    test = db.relationship("Test", backref=db.backref('testQuestions', lazy='dynamic'))
+
+    question = db.relationship("Question", backref=db.backref('testQuestions', lazy='dynamic'))
+
 
 # Таблица с вопросами
 class Question(db.Model):
@@ -53,7 +58,8 @@ class Test(db.Model):
     image_url = db.Column(db.String(255), nullable=True)
     duration = db.Column(db.Integer, nullable=False)
 
-    questions = db.relationship('Question', secondary=test_question, backref='tests')
+    # questions = db.relationship('Question', secondary=TestQuestions, backref='tests')
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,6 +67,32 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), default='user')
 
+
+class TestAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('test.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(50), default='in-progress')  # Possible values: 'in-progress', 'completed'
+
+    test = db.relationship('Test', backref='attempts')
+    user = db.relationship('User', backref='attempts')
+
+
+class TestAttemptQuestions(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    id_attempt = db.Column(db.Integer, db.ForeignKey('test_attempt.id'), nullable=False)
+    test = db.Column(db.Integer, nullable=False)
+    question = db.Column(db.Integer, nullable=False)
+
+    start_time = db.Column(db.DateTime, nullable=True)
+    end_time = db.Column(db.DateTime, nullable=True)
+
+    num = db.Column(db.Integer, nullable=True)
+    correct = db.Column(db.Integer, nullable=True)  # 0 or 1
+
+    attempt_questions = db.relationship('TestAttempt', backref=db.backref('test_attempt_questions', lazy='dynamic'))
 
 
 def create_tables_if_not_exist():

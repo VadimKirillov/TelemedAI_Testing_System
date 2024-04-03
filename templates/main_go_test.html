@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Статистика</title>
-    {%include 'top_menu_links.html'%}
+    <title>Мейн го тест</title>
+    {% include 'top_menu_links.html' %}
 </head>
 <body>
-
     {% include 'top_menu.html' %}
-    <h1>Тут будет основа теста </h1>
-
+    <p>{{random_id}}</p>
+     <a href="/tests/{{test_id}}/main_go_test/{{ random_id }}">Приступить к тесту </a>
 </body>
 </html>

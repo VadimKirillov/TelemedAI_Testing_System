@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
-from sqlalchemy import desc
+from sqlalchemy import desc, select
 
 from models import *
 from database import create_tables_if_not_exist
@@ -8,8 +8,10 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo
 from access import group_permission_decorator
 from forms import *
+from datetime import datetime
 import json
 import os
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '12345'
@@ -18,10 +20,6 @@ IMG_FOLDER = os.path.join("static", "photo")
 app.config["UPLOAD_FOLDER"] = IMG_FOLDER
 
 app.config['ACCESS_CONFIG'] = json.load(open('config/access.json', 'r'))
-
-
-
-
 
 # Загрузка конфигурации из файла
 with open('config/config.json', 'r') as f:
@@ -50,10 +48,10 @@ def base():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-     if request.method == 'GET':
-         session.clear()
-         form = LoginForm()
-     else:
+    if request.method == 'GET':
+        session.clear()
+        form = LoginForm()
+    else:
         form = LoginForm()
 
         if form.validate_on_submit():
@@ -74,6 +72,9 @@ def login():
                         print("IF")
                         session['group_name'] = group_name
                         session['username'] = username
+                        user = User.query.filter_by(username=username).first()
+                        session['id'] = user.id
+                        print(session['id'])
                         print(session['group_name'])
                         return redirect(url_for('base'))
                 else:
@@ -85,7 +86,7 @@ def login():
                 # и аутентификации пользователя
             else:
                 return redirect(url_for('login'))
-     return render_template('login.html', form=form)
+    return render_template('login.html', form=form)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -121,7 +122,65 @@ def start_test(test_id):
 
 @app.route("/tests/<int:test_id>/main_go_test", methods=["GET", "POST"])
 def main_go_test(test_id):
-    return render_template("main_go_test.html")
+    if request.method == "POST":
+        user_id = session.get('id')
+        start_time = datetime.now()  # текущее время
+        # Проверяем, существует ли уже попытка теста для данного пользователя и теста с status равным 'in-progress'
+        existing_attempt = TestAttempt.query.filter_by(test_id=test_id, user_id=user_id, status='in-progress').first()
+        if existing_attempt:
+            # Если уже существует попытка теста, выводим сообщение об ошибке
+            new_attempt = existing_attempt
+            print('Вы уже начали этот тест.', 'error')
+            return redirect(url_for('tests'))
+        else:
+            print('阿萨')
+            # Создаем новую запись в таблице test_attempt
+            new_attempt = TestAttempt(
+                test_id=test_id,
+                user_id=user_id,
+                start_time=start_time
+            )
+            # Добавляем запись в базу данных
+            db.session.add(new_attempt)
+            db.session.commit()
+
+            test_questions = TestQuestions.query.filter_by(test_id=test_id).all()
+            # Создаем записи в таблице TestAttemptQuestions для каждого вопроса
+            for test_question in test_questions:
+                new_attempt_question = TestAttemptQuestions(
+                    id_attempt=new_attempt.id,
+                    test=test_question.test_id,
+                    question=test_question.question_id,
+                    start_time=None,
+                    end_time=None,  # Пока не ответили на вопрос, поэтому None
+                    num=None,  # Пока не ответили на вопрос, поэтому None
+                    correct=None  # Пока не ответили на вопрос, поэтому None
+                )
+                db.session.add(new_attempt_question)
+            db.session.commit()
+
+            # Получаем список всех записей из таблицы TestAttemptQuestions
+            attempt_questions = TestAttemptQuestions.query.all()
+
+            # Создаем список для хранения кортежей (id_attempt, test_id)
+            filtered_attempt_questions = TestAttemptQuestions.query.filter_by(id_attempt=new_attempt.id,
+                                                                              test=test_question.test_id).all()
+            id_list = [attempt_question.id for attempt_question in filtered_attempt_questions]
+
+            print("id_list", id_list)
+            random_id = random.choice(id_list)
+            print("random_id", random_id)
+            print('Новая попытка теста начата.', 'success')
+            # , random_id=random_id
+            #
+
+    return render_template("main_go_test.html", random_id=random_id, test_id=test_id)
+
+
+@app.route("/tests/<int:test_id>/main_go_test/<int:random_id>")
+def question_page(random_id, test_id):
+
+    return render_template("process_test.html", random_id=random_id)
 
 
 @app.route("/question", methods=["GET"])
@@ -151,20 +210,6 @@ def display_questions():
         current_modal=modal_id,
         current_target_body=target_body_id,
     )
-
-
-# @app.route("/question/<int:question_id>")
-# def display_question(question_id):
-#     question = Question.query.get(question_id)
-#     answers = Answer.query.filter_by(id_question=question_id).all()
-#
-#     # Получение данных modal.name, difficult.name, target.name
-#     modal_name = question.modality.name
-#     difficult_name = question.difficulty.name
-#     target_name = question.target_body.name
-#
-#     return render_template("question_detail.html", question=question, answers=answers,
-#                            modal_name=modal_name, difficult_name=difficult_name, target_name=target_name)
 
 
 @app.route("/question/<int:question_id>", methods=["GET", "POST"])
@@ -302,13 +347,16 @@ def create_question():
 @group_permission_decorator
 def statistics():
     # Получить количество вопросов по категориям сложности
-    difficulty_counts = db.session.query(Difficult.name, db.func.count(Question.difficulty_id)).join(Question).group_by(Difficult.name).all()
+    difficulty_counts = db.session.query(Difficult.name, db.func.count(Question.difficulty_id)).join(Question).group_by(
+        Difficult.name).all()
 
     # Получить количество вопросов по модальностям
-    modality_counts = db.session.query(Modal.name, db.func.count(Question.modality_id)).join(Question).group_by(Modal.name).all()
+    modality_counts = db.session.query(Modal.name, db.func.count(Question.modality_id)).join(Question).group_by(
+        Modal.name).all()
 
     # Получить количество вопросов по целевым областям тела
-    target_counts = db.session.query(Target.name, db.func.count(Question.target_body_id)).join(Question).group_by(Target.name).all()
+    target_counts = db.session.query(Target.name, db.func.count(Question.target_body_id)).join(Question).group_by(
+        Target.name).all()
 
     return render_template("statistics.html", difficulty_counts=difficulty_counts, modality_counts=modality_counts,
                            target_counts=target_counts)
