@@ -20,7 +20,7 @@ $('#questionForm').submit(function (event) {
         error: function (xhr, status, error) {
             // Обработка ошибок при сохранении данных
             console.error(xhr.responseText);
-            alert('Произошла ошибка при сохранении данных.');
+            $('#errorModal').modal('show');
         }
     });
 });

@@ -43,15 +43,6 @@
     {% include 'top_menu.html' %}
     <div class="container">
         <form method="GET" action="{{ url_for('display_questions') }}">
-    <div class="form-group">
-        <label for="modal">Фильтр по модальности:</label>
-        <select class="form-control" id="modal" name="modal">
-            <option value="">Все модальности</option>
-            {% for modal in modals %}
-            <option value="{{ modal.id }}" {% if current_modal == modal.id %}selected{% endif %}>{{ modal.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
 
     <div class="form-group">
         <label for="target_body">Фильтр по целевому органу:</label>
@@ -62,6 +53,10 @@
             {% endfor %}
         </select>
     </div>
+     <div class="form-group">
+                <label for="search_text">Поиск по тексту вопроса:</label>
+                <input type="text" class="form-control" id="search_text" name="search_text" value="{{ current_search_text }}">
+            </div>
 
     <button type="submit" class="btn btn-primary">Фильтровать</button>
 </form>

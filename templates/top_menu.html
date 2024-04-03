@@ -74,7 +74,7 @@
     }
         window.onload = toggleTabs;
         // Получаем значение username из сессии и отображаем его
-        const username = "{{ session.get('group_name') }}"; // Получаем значение username из сессии
+        const username = "{{ session.get('username') }}"; // Получаем значение username из сессии
         if (username && username !== "None") {
             document.getElementById('usernameDisplay').textContent = username;
             document.getElementById('loginButton').style.display = 'none';

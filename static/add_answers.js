@@ -1,6 +1,12 @@
 $(document).ready(function () {
     // Обработка нажатия на кнопку "Добавить вариант ответа"
     $('#addAnswerOption').click(function () {
+        // Проверяем, есть ли уже 5 вариантов ответа
+        if ($('#answerOptionsContainer').children().length >= 6) {
+            $('#limitExceededModal').modal('show');
+            return;
+        }
+
         // Создаем новый элемент div для варианта ответа
         var newOptionDiv = $('<div class="form-group"></div>');
 
@@ -29,5 +35,19 @@ $(document).ready(function () {
     // Обработка нажатия на кнопку "Удалить"
     $(document).on('click', '.deleteOption', function () {
         $(this).closest('.form-group').remove(); // Удаляем ближайший родительский элемент с классом .form-group
+    });
+
+    // Обработка отправки формы
+    $('#questionForm').submit(function (event) {
+        // Проверяем количество вариантов ответа
+        if ($('#answerOptionsContainer').children().length < 3) {
+            $('#minOptionsModal').modal('show');
+            event.preventDefault(); // Отменяем отправку формы
+        }
+        // Проверяем количество вариантов ответа
+        else if ($('#answerOptionsContainer').children().length > 5) {
+            $('#maxOptionsModal').modal('show');
+            event.preventDefault(); // Отменяем отправку формы
+        }
     });
 });

@@ -72,6 +72,7 @@ def login():
                         print("IF")
                         session['group_name'] = group_name
                         session['username'] = username
+                        print( " session['username']",session['username'])
                         user = User.query.filter_by(username=username).first()
                         session['id'] = user.id
                         print(session['id'])
@@ -207,15 +208,15 @@ def question_page(random_id, test_id):
         print("begin_time", begin_time)
 
         new_time = begin_time + timedelta(minutes=time_end)
-        time =  new_time - start_time
-        print("time",time)
+        time = new_time - start_time
+        print("time", time)
         minutes = time.seconds // 60
         seconds = time.seconds % 60
         print("minutes", minutes)
         print("seconds", seconds)
         return render_template("process_test.html", random_id=random_id, test_id=test_id, question=question,
                                answers=answers,
-                               multiple=multiple, minutes=minutes,seconds = seconds )
+                               multiple=multiple, minutes=minutes, seconds=seconds)
     else:
         selected_answers = request.form.getlist('answers[]')
         attempt_question = TestAttemptQuestions.query.get(random_id)
@@ -276,6 +277,7 @@ def end_test(id_attempt):
 def display_questions():
     modal_id = request.args.get("modal")
     target_body_id = request.args.get("target_body")
+    search_text = request.args.get('search_text', '')
 
     questions = Question.query.order_by(Question.text)
 
@@ -284,6 +286,10 @@ def display_questions():
 
     if target_body_id:
         questions = questions.filter(Question.target_body_id == target_body_id)
+
+    # Фильтруем вопросы по тексту
+    if search_text:
+        questions = questions.filter(Question.text.ilike(f"%{search_text}%"))
 
     questions = questions.all()
 
@@ -297,6 +303,7 @@ def display_questions():
         target_bodies=target_bodies,
         current_modal=modal_id,
         current_target_body=target_body_id,
+        current_search_text=search_text
     )
 
 
@@ -335,8 +342,8 @@ def display_question(question_id):
         default_difficulty_id = question.difficulty_id
         target_id = question.target_body_id
         answers = Answer.query.filter_by(id_question=question_id).all()
-
-        return render_template("question_edit.html", question=question, modal_id=modal_id,
+        print("question_id ", question_id)
+        return render_template("question_edit.html", question_id=question_id, question=question, modal_id=modal_id,
                                default_difficulty_id=default_difficulty_id,
                                target_id=target_id, difficulties=difficulties, modals=modals, targets=targets,
                                answers=answers)
@@ -350,7 +357,9 @@ def delete_question(question_id):
         answers = Answer.query.filter_by(id_question=question_id).all()
         for answer in answers:
             db.session.delete(answer)
-
+        test_questions = TestQuestions.query.filter_by(question_id=question_id).all()
+        for test_question in test_questions:
+            db.session.delete(test_question)
         # Удалить вопрос
         db.session.delete(question)
         db.session.commit()
@@ -381,6 +390,13 @@ def create_question():
                 path_in_bd = os.path.join("/photo", image_url).replace('\\', '/')
                 print("path   ", path_in_bd)
                 file.save(os.path.join("static/photo", image_url))
+                tmp_flag = 0
+        else:
+            # Если файл не был загружен, используем путь по умолчанию
+            image_url = "/photo/default.jpg"
+            tmp_flag = 1
+            path_in_bd = image_url
+            print("path_in_bd", path_in_bd)
 
         difficulty = Difficult.query.get(difficulty_id)
         modality = Modal.query.get(modality_id)
@@ -395,7 +411,7 @@ def create_question():
         db.session.commit()
 
         latest_question_2 = Question.query.order_by(desc(Question.id)).first()
-        if latest_question_2 and image_url.split('.')[0] != str(latest_question_2.id):
+        if latest_question_2 and image_url.split('.')[0] != str(latest_question_2.id) and tmp_flag ==0:
             image_url = str(latest_question_2.id) + '.' + extension
             full_image_path = os.path.join("static/photo", image_url).replace('\\', '/')
 
@@ -405,7 +421,10 @@ def create_question():
             file.save(full_image_path)
             question.image_url = path_in_bd
             db.session.commit()
-
+        else:
+            path_in_bd = "/photo/default.jpg"
+            question.image_url = path_in_bd
+            db.session.commit()
         # Получаем тексты ответов и их правильность из формы
         answer_texts = request.form.getlist("answer_text[]")
         correct_answers = request.form.getlist("correct_answer[]")
