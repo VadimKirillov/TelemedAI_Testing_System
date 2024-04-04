@@ -72,7 +72,7 @@ def login():
                         print("IF")
                         session['group_name'] = group_name
                         session['username'] = username
-                        print( " session['username']",session['username'])
+                        print(" session['username']", session['username'])
                         user = User.query.filter_by(username=username).first()
                         session['id'] = user.id
                         print(session['id'])
@@ -381,7 +381,7 @@ def create_question():
         latest_question = latest_question.id if latest_question else 0
 
         image_url = str(latest_question + 1)
-
+        tmp_flag = 0
         file = request.files['image']
         if file and '.' in file.filename:
             extension = file.filename.rsplit('.', 1)[1].lower()
@@ -396,12 +396,12 @@ def create_question():
             image_url = "/photo/default.jpg"
             tmp_flag = 1
             path_in_bd = image_url
-            print("path_in_bd", path_in_bd)
+            # print("path_in_bd", path_in_bd)
 
         difficulty = Difficult.query.get(difficulty_id)
         modality = Modal.query.get(modality_id)
         target_body = Target.query.get(target_body_id)
-        print(image_url)
+        # print("image_url В БД ПОСЛЕ IF_ELSE1", path_in_bd)
         # Создаем новый объект Question
         question = Question(text=text, image_url=path_in_bd, difficulty=difficulty, modality=modality,
                             target_body=target_body)
@@ -411,20 +411,23 @@ def create_question():
         db.session.commit()
 
         latest_question_2 = Question.query.order_by(desc(Question.id)).first()
-        if latest_question_2 and image_url.split('.')[0] != str(latest_question_2.id) and tmp_flag ==0:
+        if latest_question_2 and image_url.split('.')[0] != str(latest_question_2.id) and tmp_flag == 0:
             image_url = str(latest_question_2.id) + '.' + extension
             full_image_path = os.path.join("static/photo", image_url).replace('\\', '/')
 
             path_in_bd = os.path.join("/photo", image_url).replace('\\', '/')
-            print("path   ", path_in_bd)
+            # print("path   ", path_in_bd)
 
             file.save(full_image_path)
             question.image_url = path_in_bd
+            # print("image_url В БД ПОСЛЕ IF2", path_in_bd)
             db.session.commit()
-        else:
-            path_in_bd = "/photo/default.jpg"
-            question.image_url = path_in_bd
-            db.session.commit()
+        else :
+            if tmp_flag == 1:
+                path_in_bd = "/photo/default.jpg"
+                question.image_url = path_in_bd
+                # print("image_url В БД ПОСЛЕ ELSE2", path_in_bd)
+                db.session.commit()
         # Получаем тексты ответов и их правильность из формы
         answer_texts = request.form.getlist("answer_text[]")
         correct_answers = request.form.getlist("correct_answer[]")
