@@ -7,7 +7,7 @@
     <!-- Подключаем стили Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
-<body>
+<body style="background-color: beige;">
     {% include 'top_menu.html' %}
 
     <div class="container mt-5">
@@ -76,11 +76,11 @@
                             <option value="true" {% if answer.is_correct %} selected {% endif %}>Правильный ответ</option>
                             <option value="false" {% if not answer.is_correct %} selected {% endif %}>Неправильный ответ</option>
                         </select>
-                        <button type="button" class="btn btn-danger deleteOption">Удалить</button>
+<!--                        <button type="button" class="btn btn-danger deleteOption">Удалить</button>-->
                     </div>
                 {% endfor %}
             </div>
-            <button type="button" class="btn btn-primary" id="addAnswerOption">Добавить вариант ответа</button>
+<!--            <button type="button" class="btn btn-primary" id="addAnswerOption">Добавить вариант ответа</button>-->
 
             <!-- Кнопка "Сохранить" -->
             <button type="submit" class="btn btn-primary" id="saveButton">Сохранить</button>

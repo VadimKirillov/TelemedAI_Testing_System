@@ -277,7 +277,33 @@ def question_page(random_id, test_id):
 
 @app.route("/tests/<int:id_attempt>/end_test")
 def end_test(id_attempt):
-    return render_template("end_test.html")
+    filtered_attempt_questions = TestAttemptQuestions.query.filter_by(id_attempt=id_attempt).all()
+
+    filtered_attempt_questions.sort(key=lambda x: x.num)
+
+    cor = 0
+
+    count = len(filtered_attempt_questions)
+    for quest in filtered_attempt_questions:
+        if quest.correct == 1:
+            cor += 1
+
+    percent = round(cor/count * 100)
+
+    seconds = []
+    for quest in filtered_attempt_questions:
+        time_obj = quest.end_time - quest.start_time
+        sec = time_obj.total_seconds()
+
+        # print(sec)
+
+        seconds.append(sec)
+
+    seconds = [round(x) for x in seconds]
+    print(seconds)
+
+    return render_template("end_test.html", seconds=seconds, percent=percent)
+
 
 
 @app.route("/question", methods=["GET"])
@@ -475,9 +501,20 @@ def statistics():
     # Получить количество вопросов по целевым областям тела
     target_counts = db.session.query(Target.name, db.func.count(Question.target_body_id)).join(Question).group_by(
         Target.name).all()
+    total_difficulty_count = sum(count for _, count in difficulty_counts)
+    total_target_count = sum(count for _, count in target_counts)
+    print("total_difficulty_count", total_difficulty_count)
+    print("total_target_count", total_target_count)
 
-    return render_template("statistics.html", difficulty_counts=difficulty_counts, modality_counts=modality_counts,
-                           target_counts=target_counts)
+    total_users = User.query.count()
+
+    # Получить распределение пользователей по ролям
+    role_counts = db.session.query(User.role, db.func.count(User.id)).group_by(User.role).all()
+    role_labels = [role for role, _ in role_counts]
+    role_data = [count for _, count in role_counts]
+    print(role_counts)
+    return render_template("statistics.html", role_labels = role_labels,role_data = role_data, difficulty_counts=difficulty_counts, modality_counts=modality_counts,
+                           target_counts=target_counts, total_difficulty_count = total_difficulty_count ,total_target_count = total_target_count)
 
 
 @app.route('/about')

@@ -5,24 +5,30 @@
     <title>{{ test.name }}</title>
     {%include 'top_menu_links.html'%}
 
-      <style>
+    <style>
         .small-image {
-            max-width: 200px; /* Максимальная ширина изображения */
-            height: auto; /* Автоматическая высота, чтобы сохранить пропорции */
-            display: block; /* Делаем изображение блочным элементом */
-            margin-top: 20px; /* Отступ сверху */
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 20px auto; /* Центрируем изображение горизонтально */
+        }
+
+        .centered-text {
+            text-align: center; /* Центрируем текст */
         }
     </style>
 
 </head>
-<body>
+<body style="background-color: beige;">
 {% include 'top_menu.html' %}
- <h1>{{ test.name }}</h1>
-    <img src="{{ url_for('static', filename=test.image_url) }}" alt="Test Image"class="small-image">
+<h1 class="text-center">{{ test.name }}</h1>
+<img src="{{ url_for('static', filename=test.image_url) }}" alt="Test Image" class="small-image mx-auto">
+<div class="centered-text">
     <p><strong>Описание: </strong> {{ test.description }}</p>
     <p><strong>Продолжительность теста в минутах: </strong> {{ test.duration }}</p>
     <form action="/tests/{{ test.id }}/main_go_test" method="POST">
-        <button type="submit">Начать</button>
+        <button type="submit" class="btn btn-primary">Начать</button> <!-- Используем кнопку Bootstrap -->
     </form>
+</div>
 </body>
 </html>

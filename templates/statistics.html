@@ -6,38 +6,49 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {%include 'top_menu_links.html'%}
 </head>
-<body>
+<body style="background-color: beige;">
 
-    {% include 'top_menu.html' %}
-    <h1>Статистика по вопросов</h1>
+{% include 'top_menu.html' %}
+<h1>Статистика по вопросам</h1>
 
-    <style>
+<style>
     .chart-container {
         text-align: center;
         max-width: 300px;
         margin: 0 auto;
     }
+
     .chart-container canvas {
-        max-width: 100%;
-        max-height: 200px;
+        width: 300px; /* Задаем фиксированную ширину */
+        height: 300px; /* Задаем фиксированную высоту */
     }
+
     .chart-container h2 {
         font-size: 14px;
     }
+
+    .charts-wrapper {
+        display: flex;
+        justify-content: center; /* Выравнивание по центру */
+    }
+
+    .chart-item {
+        margin: 0 10px; /* Добавлен отступ между графиками */
+    }
 </style>
 
-<div style="display: flex;">
-    <div style="flex: 1; margin-right: 10px;" class="chart-container">
+<div class="charts-wrapper">
+    <div class="chart-item chart-container">
         <canvas id="difficultyChart"></canvas>
         <h2>Вопросы по категориям сложности</h2>
     </div>
-    <div style="flex: 1; margin-right: 10px;" class="chart-container">
-        <canvas id="modalityChart"></canvas>
-        <h2>Вопросы по модальностям</h2>
-    </div>
-    <div style="flex: 1;" class="chart-container">
+    <div class="chart-item chart-container">
         <canvas id="targetChart"></canvas>
         <h2>Вопросы по целевым областям тела</h2>
+    </div>
+    <div class="chart-item chart-container">
+        <canvas id="roleChart"></canvas>
+        <h2>Распределение пользователей по ролям</h2>
     </div>
 </div>
 
@@ -47,15 +58,14 @@
         labels: [{% for difficulty, _ in difficulty_counts %}'{{ difficulty }}', {% endfor %}],
         datasets: [{
             data: [{% for _, count in difficulty_counts %}{{ count }}, {% endfor %}],
-            backgroundColor: 'rgba(54, 162, 235, 0.5)'
-        }]
-    };
-
-    var modalityData = {
-        labels: [{% for modality, _ in modality_counts %}'{{ modality }}', {% endfor %}],
-        datasets: [{
-            data: [{% for _, count in modality_counts %}{{ count }}, {% endfor %}],
-            backgroundColor: 'rgba(75, 192, 192, 0.5)'
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 159, 64, 0.5)'
+            ]
         }]
     };
 
@@ -63,58 +73,80 @@
         labels: [{% for target, _ in target_counts %}'{{ target }}', {% endfor %}],
         datasets: [{
             data: [{% for _, count in target_counts %}{{ count }}, {% endfor %}],
-            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 159, 64, 0.5)'
+            ]
         }]
     };
 
-    // Создание диаграмм
+    // Создание круговых диаграмм
     var difficultyChart = new Chart(document.getElementById('difficultyChart'), {
-        type: 'bar',
+        type: 'pie', // Изменили тип диаграммы на pie
         data: difficultyData,
         options: {
             legend: {
-            display: false
-        },
-        title: {
-            display: false,
-        },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            }
-        }
-    });
-
-    var modalityChart = new Chart(document.getElementById('modalityChart'), {
-        type: 'bar',
-        data: modalityData,
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
+                display: true, // Отображаем легенду
+                position: 'right' // Положение легенды справа
+            },
+            title: {
+                display: true,
+                text: 'Вопросы по категориям сложности'
             }
         }
     });
 
     var targetChart = new Chart(document.getElementById('targetChart'), {
-        type: 'bar',
+        type: 'pie', // Изменили тип диаграммы на pie
         data: targetData,
         options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
+            legend: {
+                display: true,
+                position: 'right'
+            },
+            title: {
+                display: true,
+                text: 'Вопросы по целевым областям тела'
             }
         }
     });
-  </script>
+
+    // Данные для диаграммы с ролями пользователей
+    var roleData = {
+        labels: [{% for role in role_labels %}'{{ role }}', {% endfor %}],
+        datasets: [{
+            data: [{% for count in role_data %}{{ count }}, {% endfor %}],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 159, 64, 0.5)'
+            ]
+        }]
+    };
+
+    // Создание круговой диаграммы с ролями пользователей
+    var roleChart = new Chart(document.getElementById('roleChart'), {
+        type: 'pie',
+        data: roleData,
+        options: {
+            legend: {
+                display: true,
+                position: 'right'
+            },
+            title: {
+                display: true,
+                text: 'Распределение пользователей по ролям'
+            }
+        }
+    });
+
+</script>
 </body>
 </html>

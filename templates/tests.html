@@ -13,12 +13,6 @@
             padding: 20px;
             margin-bottom: 20px;
             transition: box-shadow 0.3s ease;
-            width: calc(90% - 20px);
-            margin-right: 20px;
-            margin-bottom: 20px;
-            display: inline-block;
-            vertical-align: top;
-            position: relative; /* Добавляем относительное позиционирование для кнопки удаления */
         }
 
         .question-card:hover {
@@ -39,20 +33,21 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: beige;">
     {% include 'top_menu.html' %}
 
-        <h1>Список тестов</h1>
+    <div class="container">
+        <h1 class="text-center">Список тестов</h1>
         <div class="row">
             {% for test in all_tests %}
-                <div class="col-md-12 mb-3">
+                <div class="col-md-6 mb-3">
                     <a href="/tests/{{ test.id }}" class="question-link">
                         <div class="question-card">
                             <img src="{{ url_for('static', filename=test.image_url) }}" alt="Изображение теста" class="question-image">
                             <div class="row">
                                 <div class="col-md-8">
                                     <h4>{{ test.name }}</h4>
-                                    <p>{{ test.duration }}</p>
+                                    <p>{{ test.duration }} минут</p>
                                 </div>
                             </div>
                         </div>
