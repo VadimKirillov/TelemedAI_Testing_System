@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .top-menu .navbar {
-            display: flex; /* Включаем flexbox для навигационного меню */
-            justify-content: space-between; /* Распределяем элементы по ширине */
-            align-items: center; /* Выравниваем элементы по вертикали */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .navbar-text {
-            margin-right: 10px; /* Добавляем небольшой отступ между именем пользователя и кнопкой */
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -32,6 +33,9 @@
                 <li id="statisticsTab" class="nav-item">
                     <a class="nav-link" href="/statistics" onclick="loadPage('/statistics')">Статистика</a>
                 </li>
+                <li id="aboutTab" class="nav-item">
+                    <a class="nav-link" href="/about" onclick="loadPage('/about')">О проекте</a>
+                </li>
             </ul>
             <div>
                 <span id="usernameDisplay" class="navbar-text"></span>
@@ -45,6 +49,20 @@
     {% block content %}{% endblock %}
 
     <script>
+        function loadPage(url) {
+            // Добавляем анимацию при нажатии на кнопку
+            const targetTab = document.querySelector("[href='" + url + "']");
+            targetTab.classList.add("animate__animated", "animate__pulse");
+
+            // После завершения анимации удаляем класс анимации
+            targetTab.addEventListener("animationend", function() {
+                targetTab.classList.remove("animate__animated", "animate__pulse");
+            });
+
+            // Здесь ваша логика загрузки страницы
+        }
+    </script>
+<script>
         function toggleTabs() {
     const groupName = "{{ session.get('group_name') }}";
 
@@ -90,3 +108,5 @@
     </script>
 </body>
 </html>
+
+

@@ -41,9 +41,17 @@ if not os.path.exists("config/initialized"):
 
 
 # Главная страница
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def base():
-    return render_template("base.html")
+    if request.method == 'GET':
+        return render_template("base.html")
+    else:
+        print("session.get('username') ", session.get('username'))
+        if session.get('username')!=None:
+            return redirect(url_for('tests'))
+        else:
+            return redirect(url_for('login'))
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -471,6 +479,10 @@ def statistics():
     return render_template("statistics.html", difficulty_counts=difficulty_counts, modality_counts=modality_counts,
                            target_counts=target_counts)
 
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
