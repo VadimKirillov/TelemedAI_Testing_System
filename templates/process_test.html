@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Уже само тестирование</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .fixed-image {
+            width: 200px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота, чтобы сохранить пропорции */
+        }
+    </style>
 </head>
 <body>
-    <!-- Отображение random_id -->
-    <p>{{ random_id }}</p>
 
-     <!-- Форма для отправки POST-запроса -->
-     <div id="timer"></div>
+    {% if question.image_url != '/photo/default.jpg' %}
+        <img src="{{ url_for('static', filename=question.image_url) }}" alt="Image" class="fixed-image">
+    {% endif %}
+
+    <!-- Форма для отправки POST-запроса -->
+    <div id="timer"></div>
     <p>{{ question.text }}</p>
     <div>
         {% if multiple %}
